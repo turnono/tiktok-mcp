@@ -118,8 +118,8 @@ const ANALYZE_VIRALITY: Tool = {
 // Server implementation
 const server = new Server(
   {
-    name: "tikneuron/tiktok-mcp",
-    version: "0.1.0",
+    name: "turnono/tiktok-mcp",
+    version: "0.2.0",
   },
   {
     capabilities: {
@@ -128,12 +128,12 @@ const server = new Server(
   }
 );
 
-// Check for API key
-const TIKNEURON_MCP_API_KEY = process.env.TIKNEURON_MCP_API_KEY!;
-if (!TIKNEURON_MCP_API_KEY) {
-  console.error(
-    "Error: TIKNEURON_MCP_API_KEY environment variable is required"
-  );
+// Backend configuration (backend-agnostic)
+const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL;
+const BACKEND_API_KEY = process.env.BACKEND_API_KEY || "";
+
+if (!BACKEND_BASE_URL) {
+  console.error("Error: BACKEND_BASE_URL environment variable is required");
   process.exit(1);
 }
 
@@ -391,7 +391,7 @@ async function performSearch(
   cursor?: string,
   search_uid?: string
 ) {
-  const url = new URL("https://tikneuron.com/api/mcp/search");
+  const url = new URL("/search", BACKEND_BASE_URL);
   url.searchParams.set("query", query);
 
   if (cursor) {
@@ -401,20 +401,19 @@ async function performSearch(
   if (search_uid) {
     url.searchParams.set("search_uid", search_uid);
   }
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Accept-Encoding": "gzip",
+  };
+  if (BACKEND_API_KEY) {
+    headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
+  }
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Accept-Encoding": "gzip",
-      "MCP-API-KEY": TIKNEURON_MCP_API_KEY,
-    },
-  });
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
     throw new Error(
-      `TikNeuron API error: ${response.status} ${
-        response.statusText
-      }\n${await response.text()}`
+      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
     );
   }
 
@@ -460,26 +459,25 @@ Search UID: ${data.metadata?.search_uid || "N/A"}`;
 }
 
 async function performGetSubtitle(tiktok_url: string, language_code: string) {
-  const url = new URL("https://tikneuron.com/api/mcp/get-subtitles");
+  const url = new URL("/get-subtitles", BACKEND_BASE_URL);
   url.searchParams.set("tiktok_url", tiktok_url);
 
   if (language_code) {
     url.searchParams.set("language_code", language_code);
   }
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Accept-Encoding": "gzip",
+  };
+  if (BACKEND_API_KEY) {
+    headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
+  }
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Accept-Encoding": "gzip",
-      "MCP-API-KEY": TIKNEURON_MCP_API_KEY,
-    },
-  });
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
     throw new Error(
-      `TikNeuron API error: ${response.status} ${
-        response.statusText
-      }\n${await response.text()}`
+      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
     );
   }
 
@@ -489,22 +487,21 @@ async function performGetSubtitle(tiktok_url: string, language_code: string) {
 }
 
 async function performGetPostDetails(tiktok_url: string) {
-  const url = new URL("https://tikneuron.com/api/mcp/post-detail");
+  const url = new URL("/post-detail", BACKEND_BASE_URL);
   url.searchParams.set("tiktok_url", tiktok_url);
 
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "Accept-Encoding": "gzip",
-      "MCP-API-KEY": TIKNEURON_MCP_API_KEY,
-    },
-  });
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+    "Accept-Encoding": "gzip",
+  };
+  if (BACKEND_API_KEY) {
+    headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
+  }
+  const response = await fetch(url, { headers });
 
   if (!response.ok) {
     throw new Error(
-      `TikNeuron API error: ${response.status} ${
-        response.statusText
-      }\n${await response.text()}`
+      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
     );
   }
 

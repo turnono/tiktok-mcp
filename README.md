@@ -2,7 +2,7 @@
 
 ![image (12)](https://github.com/user-attachments/assets/006f9983-b9dd-447c-87c6-ee27a414fd4c)
 
-The TikTok MCP integrates TikTok access into Claude AI and other apps via TikNeuron. This TikTok MCP allows you to
+The TikTok MCP integrates TikTok access into Claude AI and other apps via your own backend. This TikTok MCP allows you to
 
 - analyze TikTok videos to determine virality factors
 - get content from TikTok videos
@@ -65,7 +65,7 @@ For this TikTok MCP, you need
 
 - NodeJS v18 or higher (https://nodejs.org/)
 - Git (https://git-scm.com/)
-- TikNeuron Account and MCP API Key (https://tikneuron.com/tools/tiktok-mcp)
+- A backend that exposes endpoints compatible with this MCP (see Backend API below)
 
 ## Setup
 
@@ -89,19 +89,30 @@ npm run build
 
 This creates the file `build\index.js`
 
+## Backend API
+
+Your backend should expose the following HTTP endpoints:
+
+- `GET /post-detail?tiktok_url=...` → returns post details with fields: description, video_id, creator, hashtags, likes, shares, comments, views, bookmarks, created_at, duration, available_subtitles (array of {language, source})
+- `GET /get-subtitles?tiktok_url=...&language_code=...` → returns { subtitle_content: string }
+- `GET /search?query=...&cursor=...&search_uid=...` → returns { videos: [...], metadata: { cursor, has_more, search_uid } }
+
+Auth: If your backend requires an API key, return it via `Authorization: Bearer <key>`.
+
 ## Using in Claude AI
 
 Add the following entry to `mcpServers`:
 
 ```
 "tiktok-mcp": {
-    "command": "node",
-    "args": [
-      "path\\build\\index.js"
-    ],
-    "env": {
-      "TIKNEURON_MCP_API_KEY": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-    }
+  "command": "node",
+  "args": [
+    "/absolute/path/to/build/index.js"
+  ],
+  "env": {
+    "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp",
+    "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY"
+  }
 }
 ```
 
@@ -115,10 +126,11 @@ so that `mcpServers` will look like this:
     "tiktok-mcp": {
       "command": "node",
       "args": [
-        "path\\build\\index.js"
+        "/absolute/path/to/build/index.js"
       ],
       "env": {
-        "TIKNEURON_MCP_API_KEY": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp",
+        "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY"
       }
     }
   }
