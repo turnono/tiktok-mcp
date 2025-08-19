@@ -1,28 +1,32 @@
 {
-    "name": "@turnono/tiktok-mcp",
-    "version": "0.2.0",
-    "description": "Backend-agnostic MCP server for TikTok analysis",
-    "license": "MIT",
-    "author": "turnono",
-    "homepage": "https://github.com/turnono/tiktok-mcp",
-    "type": "module",
-    "bin": {
-      "tiktok-mcp-server": "build/index.js"
-    },
-    "files": [
-      "build"
-    ],
-    "scripts": {
-      "build": "tsc && shx chmod +x build/*.js",
-      "prepare": "npm run build",
-      "watch": "tsc --watch"
-    },
-    "dependencies": {
-      "@modelcontextprotocol/sdk": "1.10.1"
-    },
-    "devDependencies": {
-      "@types/node": "^22",
-      "shx": "^0.3.4",
-      "typescript": "^5.6.2"
-    }
+  "name": "@turnono/tiktok-mcp",
+  "version": "0.2.0",
+  "description": "Backend-agnostic MCP server for TikTok analysis",
+  "license": "MIT",
+  "author": "turnono",
+  "homepage": "https://github.com/turnono/tiktok-mcp",
+  "type": "module",
+  "bin": {
+    "tiktok-mcp-server": "build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc && shx chmod +x build/*.js || true",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "start:backend": "node build/backend/server.js",
+    "start:mcp": "node build/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.10.1",
+    "express": "^4.19.2",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "shx": "^0.3.4",
+    "typescript": "^5.6.2"
   }
+}

@@ -131,10 +131,35 @@ const server = new Server(
 // Backend configuration (backend-agnostic)
 const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL;
 const BACKEND_API_KEY = process.env.BACKEND_API_KEY || "";
+const ENABLE_SEARCH = String(process.env.ENABLE_SEARCH || "");
 
 if (!BACKEND_BASE_URL) {
   console.error("Error: BACKEND_BASE_URL environment variable is required");
   process.exit(1);
+}
+
+// Normalize base URL to preserve path segments when building endpoint URLs
+function getNormalizedBaseUrl(baseUrl: string): URL {
+  try {
+    // Ensure trailing slash so relative paths append instead of replacing the last segment
+    const normalized = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+    return new URL(normalized);
+  } catch (error) {
+    console.error(
+      `Error: BACKEND_BASE_URL is not a valid URL: ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    process.exit(1);
+  }
+}
+
+const BACKEND_BASE = getNormalizedBaseUrl(BACKEND_BASE_URL);
+
+function buildBackendUrl(endpointPath: string): URL {
+  // Remove any leading slashes on endpointPath to avoid resetting to host root
+  const relative = endpointPath.replace(/^\/+/, "");
+  return new URL(relative, BACKEND_BASE);
 }
 
 interface Subtitle {
@@ -391,7 +416,7 @@ async function performSearch(
   cursor?: string,
   search_uid?: string
 ) {
-  const url = new URL("/search", BACKEND_BASE_URL);
+  const url = buildBackendUrl("search");
   url.searchParams.set("query", query);
 
   if (cursor) {
@@ -413,7 +438,9 @@ async function performSearch(
 
   if (!response.ok) {
     throw new Error(
-      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
+      `Backend API error: ${response.status} ${
+        response.statusText
+      }\n${await response.text()}`
     );
   }
 
@@ -459,7 +486,7 @@ Search UID: ${data.metadata?.search_uid || "N/A"}`;
 }
 
 async function performGetSubtitle(tiktok_url: string, language_code: string) {
-  const url = new URL("/get-subtitles", BACKEND_BASE_URL);
+  const url = buildBackendUrl("get-subtitles");
   url.searchParams.set("tiktok_url", tiktok_url);
 
   if (language_code) {
@@ -477,7 +504,9 @@ async function performGetSubtitle(tiktok_url: string, language_code: string) {
 
   if (!response.ok) {
     throw new Error(
-      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
+      `Backend API error: ${response.status} ${
+        response.statusText
+      }\n${await response.text()}`
     );
   }
 
@@ -487,7 +516,7 @@ async function performGetSubtitle(tiktok_url: string, language_code: string) {
 }
 
 async function performGetPostDetails(tiktok_url: string) {
-  const url = new URL("/post-detail", BACKEND_BASE_URL);
+  const url = buildBackendUrl("post-detail");
   url.searchParams.set("tiktok_url", tiktok_url);
 
   const headers: Record<string, string> = {
@@ -501,7 +530,9 @@ async function performGetPostDetails(tiktok_url: string) {
 
   if (!response.ok) {
     throw new Error(
-      `Backend API error: ${response.status} ${response.statusText}\n${await response.text()}`
+      `Backend API error: ${response.status} ${
+        response.statusText
+      }\n${await response.text()}`
     );
   }
 
@@ -536,9 +567,14 @@ async function performGetPostDetails(tiktok_url: string) {
 }
 
 // Tool handlers
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: [GET_SUBTITLE, GET_POST_DETAILS, SEARCH, ANALYZE_VIRALITY],
-}));
+server.setRequestHandler(ListToolsRequestSchema, async () => {
+  const tools: Tool[] = [GET_SUBTITLE, GET_POST_DETAILS, ANALYZE_VIRALITY];
+  const searchEnabled = /^(1|true|yes)$/i.test(ENABLE_SEARCH.trim());
+  if (searchEnabled) {
+    tools.splice(2, 0, SEARCH); // Keep a sensible order when enabled
+  }
+  return { tools };
+});
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
@@ -576,6 +612,18 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       }
 
       case "tiktok_search": {
+        const searchEnabled = /^(1|true|yes)$/i.test(ENABLE_SEARCH.trim());
+        if (!searchEnabled) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: "tiktok_search is disabled. Enable it by setting ENABLE_SEARCH=true in the environment.",
+              },
+            ],
+            isError: true,
+          };
+        }
         if (!isSearchArgs(args)) {
           throw new Error("Invalid arguments for tiktok_search");
         }

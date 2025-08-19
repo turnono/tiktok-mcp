@@ -110,8 +110,9 @@ Add the following entry to `mcpServers`:
     "/absolute/path/to/build/index.js"
   ],
   "env": {
-    "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp",
-    "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY"
+    "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp/",
+    "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY",
+    "ENABLE_SEARCH": "false"
   }
 }
 ```
@@ -129,10 +130,49 @@ so that `mcpServers` will look like this:
         "/absolute/path/to/build/index.js"
       ],
       "env": {
-        "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp",
-        "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY"
+        "BACKEND_BASE_URL": "https://your-backend.example.com/api/mcp/",
+        "BACKEND_API_KEY": "YOUR_OPTIONAL_API_KEY",
+        "ENABLE_SEARCH": "false"
       }
     }
   }
 }
+```
+
+## Optional: Local link-only backend
+
+This repo includes a minimal backend for link-based analysis only (no search). It exposes:
+
+- `GET /post-detail?tiktok_url=...`
+- `GET /get-subtitles?tiktok_url=...&language_code=...`
+- `GET /health`
+
+Run it locally:
+
+```
+npm install
+npm run build
+npm run start:backend
+```
+
+Environment variables for the backend:
+
+- `PORT` (optional): Port to listen on. Default `8787`.
+- `BACKEND_API_KEY` (optional): If set, requests must include `Authorization: Bearer <key>`.
+- `ASR_HTTP_URL` (optional): If set, `/get-subtitles` will POST `{ tiktok_url, language_code? }` to this URL and return `{ subtitle_content }` from the response.
+- `ASR_HTTP_API_KEY` (optional): If set, sent as `Authorization: Bearer <ASR_HTTP_API_KEY>` to the ASR service.
+
+Point your MCP server to the local backend by setting:
+
+```
+"BACKEND_BASE_URL": "http://127.0.0.1:8787/",
+"ENABLE_SEARCH": "false"
+```
+
+Quick tests:
+
+```
+curl -sS http://127.0.0.1:8787/health
+curl -sS "http://127.0.0.1:8787/post-detail?tiktok_url=https://www.tiktok.com/@scout2015/video/6718335390845095173"
+curl -sS "http://127.0.0.1:8787/get-subtitles?tiktok_url=https://www.tiktok.com/@scout2015/video/6718335390845095173"
 ```
