@@ -176,3 +176,24 @@ curl -sS http://127.0.0.1:8787/health
 curl -sS "http://127.0.0.1:8787/post-detail?tiktok_url=https://www.tiktok.com/@scout2015/video/6718335390845095173"
 curl -sS "http://127.0.0.1:8787/get-subtitles?tiktok_url=https://www.tiktok.com/@scout2015/video/6718335390845095173"
 ```
+
+## Deploy on Smithery
+
+Use these settings when creating the MCP server on Smithery ([docs](https://smithery.ai/docs)):
+
+- Build command: `npm ci && npm run build`
+- Start command: `node build/index.js`
+- Runtime: Node.js 18+
+- Transport: STDIO
+- Environment Variables:
+  - `BACKEND_BASE_URL`: e.g., `https://api.example.com/mcp/` (trailing slash recommended)
+  - `ENABLE_SEARCH`: `false` for link-only MVP
+  - `BACKEND_API_KEY` (optional)
+  - `ASR_HTTP_URL`, `ASR_HTTP_API_KEY` (optional)
+
+Alternatively, deploy via Docker:
+
+```
+docker build -t tiktok-mcp:latest .
+docker run --rm -e BACKEND_BASE_URL="https://api.example.com/mcp/" -e ENABLE_SEARCH=false tiktok-mcp:latest
+```
