@@ -134,7 +134,9 @@ const BACKEND_API_KEY = process.env.BACKEND_API_KEY || "";
 const ENABLE_SEARCH = String(process.env.ENABLE_SEARCH || "");
 
 if (!BACKEND_BASE_URL) {
-  console.error("Error: BACKEND_BASE_URL environment variable is required");
+  console.error(
+    "Error: BACKEND_BASE_URL environment variable is required"
+  );
   process.exit(1);
 }
 
@@ -488,20 +490,13 @@ Search UID: ${data.metadata?.search_uid || "N/A"}`;
 async function performGetSubtitle(tiktok_url: string, language_code: string) {
   const url = buildBackendUrl("get-subtitles");
   url.searchParams.set("tiktok_url", tiktok_url);
-
-  if (language_code) {
-    url.searchParams.set("language_code", language_code);
-  }
+  if (language_code) url.searchParams.set("language_code", language_code);
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
   };
-  if (BACKEND_API_KEY) {
-    headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
-  }
-
+  if (BACKEND_API_KEY) headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
   const response = await fetch(url, { headers });
-
   if (!response.ok) {
     throw new Error(
       `Backend API error: ${response.status} ${
@@ -509,25 +504,19 @@ async function performGetSubtitle(tiktok_url: string, language_code: string) {
       }\n${await response.text()}`
     );
   }
-
   const data = (await response.json()) as Subtitle;
-
   return data.subtitle_content || "No subtitle available";
 }
 
 async function performGetPostDetails(tiktok_url: string) {
   const url = buildBackendUrl("post-detail");
   url.searchParams.set("tiktok_url", tiktok_url);
-
   const headers: Record<string, string> = {
     Accept: "application/json",
     "Accept-Encoding": "gzip",
   };
-  if (BACKEND_API_KEY) {
-    headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
-  }
+  if (BACKEND_API_KEY) headers["Authorization"] = `Bearer ${BACKEND_API_KEY}`;
   const response = await fetch(url, { headers });
-
   if (!response.ok) {
     throw new Error(
       `Backend API error: ${response.status} ${
@@ -535,9 +524,7 @@ async function performGetPostDetails(tiktok_url: string) {
       }\n${await response.text()}`
     );
   }
-
   const data = (await response.json()) as PostDetails;
-
   if (data.details) {
     const details = data.details;
     return `Description: ${details.description || "N/A"}
@@ -561,9 +548,8 @@ async function performGetPostDetails(tiktok_url: string) {
         )
         .join(", ") || "None"
     }`;
-  } else {
-    return "No details available";
   }
+  return "No details available";
 }
 
 // Tool handlers

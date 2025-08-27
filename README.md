@@ -187,9 +187,9 @@ Use these settings when creating the MCP server on Smithery ([docs](https://smit
 - Transport: STDIO
 - Environment Variables:
   - `BACKEND_BASE_URL`: e.g., `https://api.example.com/mcp/` (trailing slash recommended)
-  - `ENABLE_SEARCH`: `false` for link-only MVP
+  - `ENABLE_SEARCH`: `false` for link-only MVP (set `true` only when your backend implements `/search`)
   - `BACKEND_API_KEY` (optional)
-  - `ASR_HTTP_URL`, `ASR_HTTP_API_KEY` (optional)
+  - `ASR_HTTP_URL`, `ASR_HTTP_API_KEY` (optional; for your subtitle provider on the backend only)
 
 Alternatively, deploy via Docker:
 
@@ -197,3 +197,5 @@ Alternatively, deploy via Docker:
 docker build -t tiktok-mcp:latest .
 docker run --rm -e BACKEND_BASE_URL="https://api.example.com/mcp/" -e ENABLE_SEARCH=false tiktok-mcp:latest
 ```
+
+> Note: A reachable backend is required. This MCP does not scrape or use oEmbed in production.
