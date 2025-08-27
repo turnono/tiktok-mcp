@@ -135,9 +135,7 @@ const BACKEND_API_KEY = process.env.BACKEND_API_KEY || "";
 const ENABLE_SEARCH = String(process.env.ENABLE_SEARCH || "");
 
 if (!BACKEND_BASE_URL) {
-  console.error(
-    "Error: BACKEND_BASE_URL environment variable is required"
-  );
+  console.error("Error: BACKEND_BASE_URL environment variable is required");
   process.exit(1);
 }
 
