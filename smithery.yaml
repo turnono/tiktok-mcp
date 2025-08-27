@@ -1,0 +1,19 @@
+version: 1
+servers:
+  - name: tiktok-mcp
+    transport: stdio
+    build:
+      - npm ci
+      - npm run build
+    start:
+      command: node
+      args:
+        - build/index.js
+    env:
+      required:
+        - BACKEND_BASE_URL
+      optional:
+        - ENABLE_SEARCH
+        - BACKEND_API_KEY
+        - ASR_HTTP_URL
+        - ASR_HTTP_API_KEY

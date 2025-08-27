@@ -198,4 +198,11 @@ docker build -t tiktok-mcp:latest .
 docker run --rm -e BACKEND_BASE_URL="https://api.example.com/mcp/" -e ENABLE_SEARCH=false tiktok-mcp:latest
 ```
 
+If Smithery asks for build config files, this repo includes:
+
+- `smithery.yaml`: stdio server definition (build `npm ci && npm run build`, start `node build/index.js`).
+- `smithery.project.yaml`: project-level defaults and Docker fallback.
+
+See [Smithery Project Config](https://smithery.ai/docs/build/project-config) for details.
+
 > Note: A reachable backend is required. This MCP does not scrape or use oEmbed in production.
